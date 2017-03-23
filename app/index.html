@@ -1,10 +1,42 @@
 <!doctype html>
 <html>
-  <head>
-    <script>
-      window.location.replace(window.location.origin + '/sites');
-    </script>
-  </head>
-  <body>
-  </body>
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!--<link rel="stylesheet" href="../css/main.css">-->
+  <title>lexer</title>
+</head>
+<body>
+<app>
+  <div class="container">
+  </div>
+</app>
+
+<script src="../libs/polyfill.js"></script>
+<script src="../libs/system.js"></script>
+
+<script>
+    // set our baseURL reference path
+    System.config({
+      baseURL: "./",
+      packages: {
+        js: {
+          format: 'register',
+          defaultExtension: 'js'
+        },
+      },
+      meta: {
+        // our modules have been transpiled to commonJS
+        './js/*': {
+          format: 'cjs'
+        }
+      }
+    });
+    System.import('./js/appController.js')
+      .then((control) => {
+        control.AppController.start();
+      }, console.error.bind(console));
+</script>
+</body>
 </html>

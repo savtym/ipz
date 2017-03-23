@@ -59,3 +59,8 @@ typings/
 
 # build
 build/
+
+
+*.doc
+*.docx
+*.tmp

@@ -2,35 +2,20 @@
 
 const gulp = require('gulp');
 const autoprefixer = require('gulp-autoprefixer');
-const rename = require("gulp-rename");
 
-/* autoprefixer for version browsers */
-const autoprefixerLastVersion = "> 1%";
-const autoprefixerIEVersion = "IE 8";
-
-//less
-const less = require('gulp-less');
-const path = require('path');
-
-gulp.task('less', function() {
-  return gulp.src('./app/**/*.less')
-    .pipe(less({
-      paths: [ path.join(__dirname, 'less', 'includes') ]
-    }))
-    .pipe(autoprefixer({
-      browsers: [autoprefixerLastVersion, autoprefixerIEVersion],
-      cascade: false
-    }))
-    .pipe(rename({dirname: ''}))
-    .pipe(gulp.dest('./build/css'))
-    .pipe(connect.reload());
-});
 
 //html
 gulp.task('html', function() {
-	return gulp.src('./app/**/*.html')
+  return gulp.src('./app/**/*.html')
     .pipe(gulp.dest('build'))
-		.pipe(connect.reload());
+    .pipe(connect.reload());
+})
+
+//start
+gulp.task('signal', function() {
+  return gulp.src('./app/**/*.signal')
+    .pipe(gulp.dest('build'))
+    .pipe(connect.reload());
 })
 
 //img
@@ -64,7 +49,7 @@ gulp.task('libs', function() {
 
 
 //build
-gulp.task('build', ['js', 'libs', 'less', 'html', 'img'], function(){
+gulp.task('build', ['js', 'libs', 'html', 'img'], function(){
   return gulp.src('./build/**/*.*') //min img, css, js
     .pipe(gulp.dest('./dist'));
 });
@@ -77,17 +62,17 @@ gulp.task('connect', function() {
   connect.server({
     root: 'build',
     livereload: true,
-    port: 8888
+    port: 1111
   });
 });
 
 //watch
 gulp.task('watch', function() {
   gulp.watch(['./app/**/*.html'], ['html']);
-  gulp.watch(['./app/**/*.less'], ['less']);
   gulp.watch(['./app/**/*.js'], ['js']);
   gulp.watch(['./app/**/*.img'], ['img']);
+  gulp.watch(['./app/**/*.signal'], ['signal']);
 });
 
 //default
-gulp.task('default', ['connect', 'html', 'js', 'libs', 'less', 'img', 'watch']);
+gulp.task('default', ['connect', 'html', 'js', 'signal', 'libs', 'img', 'watch']);

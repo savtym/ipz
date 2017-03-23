@@ -1,32 +1,27 @@
-import User from './Model/user';
-import Company from './Model/company';
-import BaseEntity from './Model/baseEntity';
+//
+// appController.js
+//
 
-import {EventEmitter} from "./Common/eventEmitter";
-import {Cookie} from "./Common/cookie";
+import Lexer from './Model/lexer.js'
 
-import {ModelController} from './modelController.js';
-import {ViewController} from './viewController.js';
+const urlFile = './start.signal';
+let textFile;
 
 export class AppController {
+
   static start() {
-  	let observe = new EventEmitter();
-    observe.addListener('changeModelUsers', (data) => this.onChangeModelUsers(data));
-    observe.addListener('changeModelCompanies', (data) => this.onChangeModelCompanies(data));
-
-  	this.model = new ModelController(observe);
-  	this.view = new ViewController(this.model);
-    this.model.getUsers();
-    this.model.getCompanies();
-  }
-
-  static onChangeModelUsers(user) {
-    this.view.createRowForUsers(user);
-    Cookie.setCookie(this.model.cookieForUsers, user);
-  }
-
-  static onChangeModelCompanies(data) {
-    console.log(data);
+    let rawFile = new XMLHttpRequest();
+    rawFile.open('GET', urlFile, false);
+    rawFile.onreadystatechange = function () {
+      if (rawFile.readyState === 4) {
+        if (rawFile.status === 200 || rawFile.status == 0) {
+          textFile = rawFile.responseText;
+          console.log(textFile);
+          console.table(Lexer.parsing(textFile));
+        }
+      }
+    }
+    rawFile.send(null);
   }
 
 
