@@ -9,22 +9,24 @@ gulp.task('html', function() {
   return gulp.src('./app/**/*.html')
     .pipe(gulp.dest('build'))
     .pipe(connect.reload());
-})
+});
+
+/* scss */
+const sass = require('gulp-sass');
+
+gulp.task('scss', () => {
+  return gulp.src(`./scss/main.scss`)
+    .pipe(sass().on('error', sass.logError))
+    .pipe(gulp.dest(`./build/css/`))
+    .pipe(connect.reload());
+});
 
 //start
 gulp.task('signal', function() {
   return gulp.src('./app/**/*.signal')
     .pipe(gulp.dest('build'))
     .pipe(connect.reload());
-})
-
-//img
-gulp.task('img', function() {
-  return gulp.src(['./app/**/*.png', './app/**/*.jpg'])
-    .pipe(gulp.dest('./build'))
-    .pipe(connect.reload());
-})
-
+});
 
 //babel
 const babel = require('gulp-babel');
@@ -42,7 +44,8 @@ gulp.task('js', function() {
 gulp.task('libs', function() {
   return gulp.src([
     'node_modules/systemjs/dist/system.js',
-    'node_modules/babel-polyfill/dist/polyfill.js'])
+    'node_modules/babel-polyfill/dist/polyfill.js',
+    './app/libs/bootstrap.min.css'])
     .pipe(gulp.dest('./build/libs'))
 		.pipe(connect.reload());
 });
@@ -66,13 +69,20 @@ gulp.task('connect', function() {
   });
 });
 
+/* fonts */
+gulp.task('fonts', () => {
+  return gulp.src(`./app/fonts/**/*`)
+    .pipe(gulp.dest(`./build/fonts/`))
+    .pipe(connect.reload());
+});
+
 //watch
 gulp.task('watch', function() {
   gulp.watch(['./app/**/*.html'], ['html']);
   gulp.watch(['./app/**/*.js'], ['js']);
-  gulp.watch(['./app/**/*.img'], ['img']);
   gulp.watch(['./app/**/*.signal'], ['signal']);
+  gulp.watch(['./scss/**/*.scss'], ['scss']);
 });
 
 //default
-gulp.task('default', ['connect', 'html', 'js', 'signal', 'libs', 'img', 'watch']);
+gulp.task('default', ['connect', 'html', 'scss', 'fonts', 'js', 'signal', 'libs', 'watch']);

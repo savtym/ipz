@@ -2,27 +2,28 @@
 // appController.js
 //
 
-import Lexer from './Model/lexer.js'
+import Observer from './common/observer.js';
+import Variables from './common/variables.js'
 
-const urlFile = './start.signal';
-let textFile;
+import ModelController from './modelController.js';
+import ViewController from './viewController.js';
+
+
+const urlFile = 'start.signal';
 
 export class AppController {
 
   static start() {
-    let rawFile = new XMLHttpRequest();
-    rawFile.open('GET', urlFile, false);
-    rawFile.onreadystatechange = function () {
-      if (rawFile.readyState === 4) {
-        if (rawFile.status === 200 || rawFile.status == 0) {
-          textFile = rawFile.responseText;
-          console.log(textFile);
-          console.table(Lexer.parsing(textFile));
-        }
-      }
-    }
-    rawFile.send(null);
+    this.model = new ModelController();
+    this.view = new ViewController();
+    Observer.addListener(Variables.responseToRequest, (title, textProgram, code) => this.responseToRequest(title, textProgram, code));
+    this.model.request(urlFile);
   }
+
+  static responseToRequest(title, textProgram, code) {
+    this.view.createTable(title, textProgram, code);
+  }
+
 
 
 }

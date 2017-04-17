@@ -14,8 +14,8 @@
     "gulp-babel": "^6.1.2",
     "gulp-connect": "^5.0.0",
     "gulp-expect-file": "0.0.7",
-    "gulp-less": "^3.1.0",
-    "gulp-livereload": "^3.8.1"
+    "gulp-livereload": "^3.8.1",
+    "gulp-sass": "^3.1.0"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"

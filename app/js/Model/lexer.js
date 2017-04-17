@@ -25,8 +25,7 @@ export default class Lexer {
       if (i < lenghtText - 1 && `${text[i]}${text[i+1]}` === '(*') {
         while (`${text[i]}${text[i+1]}` !== '*)') {
           if (i === lenghtText - 1) {
-            lexer.push(this._createRow(errorMessage, errorMessageComment, counterRow));
-            debugger
+            lexer.push(this._createRow(errorMessage, errorMessageComment, counterRow, true));
             break;
           }
           if (text[i] === '\n') {
@@ -93,20 +92,21 @@ export default class Lexer {
       lexer.push(this._createRow(Token.reservedConsts[token], token, counterRow));
     }
     else {
-      lexer.push(this._createRow(errorMessage, `${errorMessageToken}: ${token}`, counterRow));
+      lexer.push(this._createRow(errorMessage, `${errorMessageToken}: ${token}`, counterRow, true));
     }
   }
 
-  static _createRow(code, string, counterRow) {
+  static _createRow(code, string, counterRow, error = false) {
     return {
       'code': code, 
       'token': string,
-      'row': counterRow
+      'row': counterRow,
+      'error': error
     };
   }
 
   static _findInArray(array, value) {
-    for (var i = 0; i < array.length; i++) {
+    for (let i = 0; i < array.length; i++) {
       if (array[i] === value) {
         return true;
       }

@@ -60,6 +60,14 @@ export default class Token {
     return tabulation;
   }
 
+  static get reservedConstsNumber() {
+    return reservedConstsNumber;
+  }
+
+  static get reservedIdentifiersNumber() {
+    return reservedIdentifiersNumber;
+  }
+
 
   /* setters */
 
@@ -79,7 +87,7 @@ export default class Token {
   /* common */
 
   static checkConst(token) {
-    for (var i = 0; i < token.length; i++) {
+    for (let i = 0; i < token.length; i++) {
       if (token[i].charCodeAt(0) < 48 || 57 < token[i].charCodeAt(0)) {
         return false;
       }
@@ -88,7 +96,7 @@ export default class Token {
   }
 
   static checkIdentifier(token) {
-    for (var i = 0; i < token.length; i++) {
+    for (let i = 0; i < token.length; i++) {
       if (token[i].charCodeAt(0) < 65 || 95 < token[i].charCodeAt(0)) {
         return false;
       }
