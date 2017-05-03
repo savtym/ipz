@@ -1,6 +1,6 @@
 <signal-program> --> <program>
 <program> --> PROGRAM <procedure-identifier> ; <block>.
-<block> --> <declarations> BEGIN <statements-list> END
+    <block> --> <declarations> BEGIN <statements-list> END
 <declarations> --> <label-declarations>
 
 <label-declarations> --> LABEL <unsigned-integer> <labels-list>; |
@@ -12,7 +12,7 @@
 	<empty>
 <statement> --> <unsigned-integer> : <statement> 
 	|
-	GOTO <unsigned-integer> ; | 
+	GOTO <unsigned-integer> ; |
 	<condition-statement> ENDIF ;|
 	;
 

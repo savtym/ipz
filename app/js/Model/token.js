@@ -103,4 +103,13 @@ export default class Token {
     }
     return true;
   }
+
+  static isConstNumber(code) {
+    return (code >= reservedConstsNumber && code < reservedIdentifiersNumber);
+  }
+
+  static isIdentifiersNumber(code) {
+    return (code >= reservedIdentifiersNumber);
+  }
+
 }
