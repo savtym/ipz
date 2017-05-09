@@ -1,3 +1,7 @@
+//
+// viewController.js
+//
+
 import modelControler from './modelController.js';
 
 export default class ViewController {
@@ -5,7 +9,11 @@ export default class ViewController {
   constructor(model) {
     this.app = document.getElementsByTagName('app-main')[0];
   	this.model = model;
-    this.app.innerHTML = '<div class="list"></div>';
+    this.app.innerHTML = `
+      <label class="btn btn-default btn-file">
+        Download file *.signal <input type="file" style="display: none;">
+      </label>
+      <div class="list"></div>`;
     this.table = document.getElementsByClassName('list')[0];
   }
 
@@ -16,7 +24,7 @@ export default class ViewController {
 
 
     for (let i = 0; i < code.length; i++) {
-      tableStr += `<tr class="${ code[i].error ? 'error' : '' }">`;
+      tableStr += `<tr class="${ code[i].error ? 'error' : '' } ${ code[i].syntax ? 'error-syntax' : '' }">`;
       tableStr += `<td>${ i + 1 }</td>`;
       tableStr += `<td>${ code[i].code }</td>`;
       tableStr += `<td>${ code[i].token }</td>`;

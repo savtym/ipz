@@ -16,6 +16,10 @@ th {
   background-color: #555;
 }
 
+.btn-file {
+  margin-top: 40px;
+}
+
 .item {
   margin-top: 20px;
 
@@ -27,6 +31,13 @@ th {
     margin-top: 10px;
     tr.error td {
       background-color: #f2dede;
+    }
+    tr.error-syntax td {
+      background-color: #90CAF9;
+    }
+    tr.error.error-syntax td {
+      color: #fff;
+      background-color: #B71C1C;
     }
   }
 }

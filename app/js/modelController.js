@@ -1,3 +1,6 @@
+//
+// modelController.js
+//
 
 import Observer from './common/observer.js';
 import Variables from './common/variables.js';
@@ -31,17 +34,20 @@ export default class ModelController {
     xhr.send(params);
 
     xhr.onload = (response) => {
-      const textFile = response.currentTarget.responseText;
-      const code = Lexer.parsing(textFile);
-      const syntax = Syntax.analyze(code);
-      textFiles.push(textFile);
-      arrCodes.push(code);
-      Observer.emit(Variables.responseToRequest, url, textFile, code);
+      this.start(response.currentTarget.responseText, url);
     };
 
     xhr.onerror = function () {
       console.log(`Error API to url ${ url } : ${ this }`);
     };
+  }
+
+  start(textFile, title) {
+    const code = Lexer.parsing(textFile);
+    const syntax = Syntax.analyze(code);
+    textFiles.push(textFile);
+    arrCodes.push(code);
+    Observer.emit(Variables.responseToRequest, title, textFile, code);
   }
 
 }

@@ -17,6 +17,8 @@ const endToken = Token.reservedKeyWords['END'];
 
 const minLengthTokens = 5;
 
+let declarationsLabel = [];
+
 let error = false;
 
 let checkIfCounter = 0;
@@ -31,7 +33,6 @@ export default class Syntax {
 
   static analyze(code) {
     let length = code.length;
-    debugger;
 
     // if code program beginToken the token 'PROGRAM', identifier and token ';' <program> --> PROGRAM <procedure-identifier> ;
     if (length > minLengthTokens
@@ -53,11 +54,10 @@ export default class Syntax {
         }
 
       } else {
-        code[i].error = error = true;
+        code[i].syntax = true;
       }
     }
-
-    return error;
+    endProgram = false;
   }
 
   // <declarations> --> <label-declarations>
@@ -65,7 +65,7 @@ export default class Syntax {
 
     // <declarations> --> <label-declarations>
     if (code[i].code === declarationToken) {
-      i = this._unsignedInteger(code, ++i, length);
+      i = this._unsignedInteger(code, ++i, length, true);
     }
 
     return i;
@@ -73,25 +73,29 @@ export default class Syntax {
 
   // <unsigned-integer> <labels-list>; | <empty>
   // <labels-list> --> , <unsigned-integer> <labels-list> | <empty>
-  static _unsignedInteger(code, i, length) {
-    if (!error) {
-      // <unsigned-integer>, <labels-list>; <empty>
-      if (Token.isIdentifiersNumber(code[i].code)) {
+  static _unsignedInteger(code, i, length, isLabel = false) {
 
-        // , <labels-list>
-        if (length > i + 1
-          && code[++i].code === Token.reservedCharacters[',']) {
-          i = this._unsignedInteger(code, ++i, length);
-        } else {
-          // ; <empty>
-          if (code[i].code !== Token.reservedCharacters[';']) code[i].error = error = true;
-          i++;
-        }
+    // <unsigned-integer>, <labels-list>; <empty>
+    if (Token.isIdentifiersNumber(code[i].code)) {
 
-      } else {
-        code[i].error = error = true;
+      if (isLabel) {
+        declarationsLabel.push(code[i].code);
       }
+
+      // , <labels-list>
+      if (length > i + 1
+        && code[++i].code === Token.reservedCharacters[',']) {
+        i = this._unsignedInteger(code, ++i, length, isLabel);
+      } else {
+        // ; <empty>
+        if (code[i].code !== Token.reservedCharacters[';']) {
+          code[i].syntax = true;
+        }
+        i++;
+      }
+
     }
+
     return i;
   }
 
@@ -100,41 +104,52 @@ export default class Syntax {
   // <statements-list> --> <statement> <statements-list>
   static _statementsList(code, i, length) {
 
-    for (; i < length - 1; i++, !error) {
+    for (; i < length - 1; i++) {
 
       // <condition-statement> ENDIF ;
       i = this._conditionStatement(code, i, length);
 
       // <statement> --> <unsigned-integer> : <statement>
-      if ((!Token.isIdentifiersNumber(code[i].code)
-        && code[++i].code !== Token.reservedCharacters[':'])
+      if ((Token.isIdentifiersNumber(code[i].code)
+        && declarationsLabel.includes(code[i].code)
+        && i < length - 2
+        && code[++i].code === Token.reservedCharacters[':'])
 
-        // | GOTO <unsigned-integer> ;
-        || (!code[i].code === gotoToken
-          && !Token.isIdentifiersNumber(code[++i].code)
-          && length <= i
-          && code[++i].code !== Token.reservedCharacters[';'])) {
-        code[i].error = error = true;
-        code[i].syntax = true;
+        // GOTO <unsigned-integer> ;
+        || (code[i].code === gotoToken
+          && i < length - 3
+          && code[++i].code === Token.reservedCharacters[':']
+          && declarationsLabel.includes(code[++i].code)
+          && code[++i].code === Token.reservedCharacters[';'])
+
+        // ;
+        || code[i].code === Token.reservedCharacters[';']) {
+        continue;
       }
 
-      // ENDIF
-      else if (code[i].code === endIfToken) {
+      // ENDIF ;
+      else if (code[i].code === endIfToken
+        && code[++i].code === Token.reservedCharacters[';']) {
         if (checkIfCounter > 0) {
           checkIfCounter--;
+          i++;
           break;
         } else {
-          code[i].error = error = true;
+          code[i].syntax = true;
         }
       }
 
       //END
       else if (code[i].code === endToken) {
         if (checkIfCounter > 0) {
-          code[i].error = error = true;
+          code[i].syntax = true;
         }
         endProgram = true;
         break;
+      }
+
+      else {
+        code[i].syntax = true;
       }
 
     }
@@ -150,39 +165,31 @@ export default class Syntax {
     if (code[i].code === ifToken) {
 
       // <conditional-expression> --> <variable-identifier> = <unsigned-integer>
-      if ((length <= i
-        && !Token.isIdentifiersNumber(code[++i].code))
-        || (length <= i
-          && code[++i].code !== Token.reservedCharacters['='])
-        || (length <= i
-          && !Token.isConstNumber(code[++i].code))
-
-        // THEN
-        || (length <= i
-          && code[++i].code !== thenToken)) {
-
-        code[i].error = error = true;
-        code[i].syntax = true;
-
-      } else {
+      if (i < length - 7
+        && Token.isConstNumber(code[++i].code)
+        && code[++i].code === Token.reservedCharacters['=']
+        && Token.isIdentifiersNumber(code[++i].code)
+        && code[++i].code === thenToken) {
 
         checkIfCounter++;
-        // <statements-list>
-        i = this._statementsList(code, i, length);
 
-        if (!endProgram) {
-          // <alternative-part> --> ELSE <statements-list> | <empty>
-          if (i + 1 < length
-            && code[++i].code === elseToken) {
-            checkIfCounter++;
-            // <statements-list>
-            i = this._statementsList(code, i, length);
-          }
-        }
+        // <statements-list>
+        i = this._statementsList(code, ++i, length);
+
+      } else {
+        code[i].syntax = true;
       }
+
+    }
+
+    // <alternative-part> --> ELSE <statements-list> | <empty>
+    if (!endProgram && i < length - 2 && code[i].code === elseToken) {
+      // <statements-list>
+      i = this._statementsList(code, ++i, length);
     }
 
     return i;
   }
+
 
 }

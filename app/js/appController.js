@@ -20,6 +20,13 @@ export class AppController {
     this.model.request(urlFile);
   }
 
+  static requestToModel(textFile, title) {
+  	if (!this.model) {
+    	this.model = new ModelController();
+  	}
+		this.model.start(textFile, title);
+  }
+
   static responseToRequest(title, textProgram, code) {
     this.view.createTable(title, textProgram, code);
   }

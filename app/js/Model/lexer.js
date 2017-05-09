@@ -5,10 +5,11 @@
 import Token from './token';
 
 const errorMessage = 'error';
-const errorMessageToken = 'wrong token';
+const errorMessageToken = 'token is wrong';
 const errorMessageComment = `comment don't close`;
 
 export default class Lexer {
+
   constructor() {
   }
 
@@ -57,7 +58,7 @@ export default class Lexer {
 
       //const
       else if (Token.reservedConsts[buf]) {
-        lexer.push(this.createRow(Token.reservedKeyWords[buf], buf, counterRow));
+        lexer.push(this.createRow(Token.reservedConsts[buf], buf, counterRow));
       } 
 
       //identifier

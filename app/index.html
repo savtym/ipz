@@ -40,10 +40,29 @@
         }
       }
     });
+
     System.import('./js/appController.js')
       .then((control) => {
         control.AppController.start();
       }, console.error.bind(console));
+
+  $(document).on('change', ':file', function() {
+    const file = this.files[0];
+    if (file) {
+      const reader = new FileReader();
+      const title = this.value.replace(/\\/g, '/').replace(/.*\//, '');
+      reader.readAsText(file, "UTF-8");
+      reader.onload = function (evt) {
+        System.import('./js/appController.js')
+          .then((control) => {
+            control.AppController.requestToModel(evt.target.result, title);
+          }, console.error.bind(console));
+      }
+      reader.onerror = function (evt) {
+        alert("error reading file");
+      }
+    }
+  });
 </script>
 </body>
 </html>
