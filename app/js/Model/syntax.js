@@ -19,6 +19,11 @@ const minLengthTokens = 5;
 
 let declarationsLabel = [];
 
+let treeNodes = {
+  node: '<signal-program>',
+  children: []
+};
+
 let error = false;
 
 let checkIfCounter = 0;
@@ -39,18 +44,30 @@ export default class Syntax {
       && code[0].code === startProgramToken
       && Token.isConstNumber(code[1].code)
       && code[2].code === Token.reservedCharacters[';']) {
+      debugger;
 
-      // <declarations>
-      let i = this._isDeclarations(code, 3, length);
+      let node = this._setNodeTree(treeNodes, '<program>'); // <program> --> PROGRAM <procedure-identifier> ;
+      this._setNodeTree(node, startProgramToken);
+      let nodeIdent = this._setNodeTree(node, '<procedure-identifier>');
+      this._setNodeTree(nodeIdent, code[1].token);
+      this._setNodeTree(node, ';');
+      let nodeBlock = this._setNodeTree(node, '<block>');
+
+      let i = this._isDeclarations(code, 3, length, nodeBlock);
 
       // beginToken program
       if (code[i++].code === beginToken) {
+
+        this._setNodeTree(nodeBlock, beginToken);
+        let nodeStatementList = this._setNodeTree(nodeBlock, '<statements-list>');
 
         // <statements-list> --> <statement> <statements-list> | <empty>
         this._statementsList(code, i, length);
 
         if (!endProgram) {
           code.push(Lexer.createRow(-1, errorNotFoundEND, length, true));
+        } else {
+          this._setNodeTree(nodeBlock, endToken);
         }
 
       } else {
@@ -61,11 +78,15 @@ export default class Syntax {
   }
 
   // <declarations> --> <label-declarations>
-  static _isDeclarations(code, i, length) {
+  static _isDeclarations(code, i, length, nodeParent) {
+    
+    let nodeDeclarations = this._setNodeTree(nodeParent, '<declarations>');
+    let nodeLabelDeclarations = this._setNodeTree(nodeDeclarations, '<label-declarations>');
 
     // <declarations> --> <label-declarations>
     if (code[i].code === declarationToken) {
-      i = this._unsignedInteger(code, ++i, length, true);
+      this._setNodeTree(nodeLabelDeclarations, declarationToken);
+      i = this._unsignedInteger(code, ++i, length, true, nodeLabelDeclarations);
     }
 
     return i;
@@ -73,10 +94,13 @@ export default class Syntax {
 
   // <unsigned-integer> <labels-list>; | <empty>
   // <labels-list> --> , <unsigned-integer> <labels-list> | <empty>
-  static _unsignedInteger(code, i, length, isLabel = false) {
+  static _unsignedInteger(code, i, length, isLabel = false, nodeParent) {
 
     // <unsigned-integer>, <labels-list>; <empty>
     if (Token.isIdentifiersNumber(code[i].code)) {
+
+      let nodeInt = this._setNodeTree(nodeParent, '<unsigned-integer>');
+      this._setNodeTree(nodeInt, code[i].token);
 
       if (isLabel) {
         declarationsLabel.push(code[i].code);
@@ -85,9 +109,11 @@ export default class Syntax {
       // , <labels-list>
       if (length > i + 1
         && code[++i].code === Token.reservedCharacters[',']) {
-        i = this._unsignedInteger(code, ++i, length, isLabel);
+        this._setNodeTree(nodeParent, ',');
+        i = this._unsignedInteger(code, ++i, length, isLabel, nodeInt);
       } else {
         // ; <empty>
+        this._setNodeTree(nodeParent, code[i].token);
         if (code[i].code !== Token.reservedCharacters[';']) {
           code[i].syntax = true;
         }
@@ -189,6 +215,15 @@ export default class Syntax {
     }
 
     return i;
+  }
+
+  static _setNodeTree(parent, str) {
+    let node = {
+      node: str,
+      children: []
+    };
+    parent.children.push(node);
+    return node;
   }
 
 
