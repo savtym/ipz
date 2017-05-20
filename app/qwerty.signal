@@ -5,10 +5,10 @@ BEGIN
 	22 :
 		IF SDSRE = 21321 THEN
 			IF SDSRE = 21321 THEN
-				GOTO: 11;
+				GOTO 11;
 			ENDIF;
 		ELSE
-			GOTO: 22;
+			GOTO 22;
 		ENDIF;
 	;
 

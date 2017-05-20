@@ -44,10 +44,10 @@ export default class ModelController {
 
   start(textFile, title) {
     const code = Lexer.parsing(textFile);
-    const syntax = Syntax.analyze(code);
+    Syntax.analyze(code);
     textFiles.push(textFile);
     arrCodes.push(code);
-    Observer.emit(Variables.responseToRequest, title, textFile, code);
+    Observer.emit(Variables.responseToRequest, title, textFile, code, Syntax.treeNodes);
   }
 
 }

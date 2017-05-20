@@ -25,15 +25,22 @@ let treeNodes = {
 };
 
 let error = false;
-
-let checkIfCounter = 0;
 let endProgram = false;
+
+let checkIf = {
+  counter: 0,
+  node: []
+};
 
 const errorNotFoundEND = 'Not found END.';
 
 export default class Syntax {
 
   constructor() {
+  }
+
+  static get treeNodes() {
+    return treeNodes;
   }
 
   static analyze(code) {
@@ -44,30 +51,28 @@ export default class Syntax {
       && code[0].code === startProgramToken
       && Token.isConstNumber(code[1].code)
       && code[2].code === Token.reservedCharacters[';']) {
-      debugger;
 
       let node = this._setNodeTree(treeNodes, '<program>'); // <program> --> PROGRAM <procedure-identifier> ;
-      this._setNodeTree(node, startProgramToken);
+      this._setNodeTree(node, code[0]);
       let nodeIdent = this._setNodeTree(node, '<procedure-identifier>');
-      this._setNodeTree(nodeIdent, code[1].token);
-      this._setNodeTree(node, ';');
+      this._setNodeTree(nodeIdent, code[1]);
+      this._setNodeTree(node, code[2]);
       let nodeBlock = this._setNodeTree(node, '<block>');
 
       let i = this._isDeclarations(code, 3, length, nodeBlock);
 
       // beginToken program
-      if (code[i++].code === beginToken) {
+      if (code[i].code === beginToken) {
 
-        this._setNodeTree(nodeBlock, beginToken);
-        let nodeStatementList = this._setNodeTree(nodeBlock, '<statements-list>');
+        this._setNodeTree(nodeBlock, code[i++]);
 
         // <statements-list> --> <statement> <statements-list> | <empty>
-        this._statementsList(code, i, length);
+        [i,] = this._statementsList(code, i, length, nodeBlock);
 
         if (!endProgram) {
           code.push(Lexer.createRow(-1, errorNotFoundEND, length, true));
         } else {
-          this._setNodeTree(nodeBlock, endToken);
+          this._setNodeTree(nodeBlock, code[i]);
         }
 
       } else {
@@ -85,8 +90,8 @@ export default class Syntax {
 
     // <declarations> --> <label-declarations>
     if (code[i].code === declarationToken) {
-      this._setNodeTree(nodeLabelDeclarations, declarationToken);
-      i = this._unsignedInteger(code, ++i, length, true, nodeLabelDeclarations);
+      this._setNodeTree(nodeLabelDeclarations, code[i]);
+      i = this._unsignedInteger(code, ++i, length, true, this._setNodeTree(nodeLabelDeclarations, '<unsigned-integer>'));
     }
 
     return i;
@@ -99,8 +104,7 @@ export default class Syntax {
     // <unsigned-integer>, <labels-list>; <empty>
     if (Token.isIdentifiersNumber(code[i].code)) {
 
-      let nodeInt = this._setNodeTree(nodeParent, '<unsigned-integer>');
-      this._setNodeTree(nodeInt, code[i].token);
+      this._setNodeTree(nodeParent, code[i]);
 
       if (isLabel) {
         declarationsLabel.push(code[i].code);
@@ -109,13 +113,14 @@ export default class Syntax {
       // , <labels-list>
       if (length > i + 1
         && code[++i].code === Token.reservedCharacters[',']) {
-        this._setNodeTree(nodeParent, ',');
-        i = this._unsignedInteger(code, ++i, length, isLabel, nodeInt);
+        this._setNodeTree(nodeParent, code[i]);
+        i = this._unsignedInteger(code, ++i, length, isLabel, nodeParent);
       } else {
         // ; <empty>
-        this._setNodeTree(nodeParent, code[i].token);
         if (code[i].code !== Token.reservedCharacters[';']) {
           code[i].syntax = true;
+        } else {
+            this._setNodeTree(nodeParent, code[i]);
         }
         i++;
       }
@@ -128,36 +133,56 @@ export default class Syntax {
 
   // <statements-list> END
   // <statements-list> --> <statement> <statements-list>
-  static _statementsList(code, i, length) {
+  static _statementsList(code, i, length, nodeParent) {
 
-    for (; i < length - 1; i++) {
+    const nodeStatementList = this._setNodeTree(nodeParent, '<statements-list>');
+    let isElse = true;
+
+    for (; i < length; i++) {
 
       // <condition-statement> ENDIF ;
-      i = this._conditionStatement(code, i, length);
+      [i, isElse] = this._conditionStatement(code, i, length, nodeStatementList);
+
+      if (isElse) {
+        break;
+      }
 
       // <statement> --> <unsigned-integer> : <statement>
-      if ((Token.isIdentifiersNumber(code[i].code)
+      if (Token.isIdentifiersNumber(code[i].code)
         && declarationsLabel.includes(code[i].code)
         && i < length - 2
-        && code[++i].code === Token.reservedCharacters[':'])
+        && code[++i].code === Token.reservedCharacters[':']) {
+          const nodeStatement = this._setNodeTree(nodeStatementList, '<statement>');
+          this._setNodeTree(nodeStatement, code[i-1]);
+          this._setNodeTree(nodeStatement, code[i]);
+      }
 
-        // GOTO <unsigned-integer> ;
-        || (code[i].code === gotoToken
-          && i < length - 3
-          && code[++i].code === Token.reservedCharacters[':']
-          && declarationsLabel.includes(code[++i].code)
-          && code[++i].code === Token.reservedCharacters[';'])
+      // GOTO <unsigned-integer> ;
+      else if (code[i].code === gotoToken
+        && i < length - 2
+        && declarationsLabel.includes(code[++i].code)
+        && code[++i].code === Token.reservedCharacters[';']) {
+          const nodeStatement = this._setNodeTree(nodeStatementList, '<statement>');
+          this._setNodeTree(nodeStatement, code[i-2]);
+          this._setNodeTree(nodeStatement, code[i-1]);
+          this._setNodeTree(nodeStatement, code[i]);
+      }
 
-        // ;
-        || code[i].code === Token.reservedCharacters[';']) {
-        continue;
+      // ;
+      else if (code[i].code === Token.reservedCharacters[';']) {
+        const nodeStatement = this._setNodeTree(nodeStatementList, '<statement>');
+        this._setNodeTree(nodeStatement, code[i]);
       }
 
       // ENDIF ;
       else if (code[i].code === endIfToken
+        && i < length - 1
         && code[++i].code === Token.reservedCharacters[';']) {
-        if (checkIfCounter > 0) {
-          checkIfCounter--;
+        if (checkIf.counter > 0) {
+          checkIf.counter--;
+          let nodeEndIf = checkIf.node.pop();
+          this._setNodeTree(nodeEndIf, code[i-1]);
+          this._setNodeTree(nodeEndIf, code[i]);
           i++;
           break;
         } else {
@@ -167,7 +192,7 @@ export default class Syntax {
 
       //END
       else if (code[i].code === endToken) {
-        if (checkIfCounter > 0) {
+        if (checkIf.counter > 0) {
           code[i].syntax = true;
         }
         endProgram = true;
@@ -180,15 +205,21 @@ export default class Syntax {
 
     }
 
-    return i;
+    return [i, isElse];
   }
 
   // <incomplete-condition-statement><alternative-part>
   // <incomplete-condition-statement> --> IF <conditional-expression> THEN <statements-list>
-  static _conditionStatement(code, i, length) {
+  static _conditionStatement(code, i, length, nodeParent) {
+
+    let isElse = false;
 
     // IF
     if (code[i].code === ifToken) {
+
+      const nodeCondition = this._setNodeTree(this._setNodeTree(nodeParent, '<statement>'), '<condition-statement>');
+      const nodeConditionStatement = this._setNodeTree(nodeCondition, '<incomplete-condition-statement>');
+      this._setNodeTree(nodeConditionStatement, code[i]);
 
       // <conditional-expression> --> <variable-identifier> = <unsigned-integer>
       if (i < length - 7
@@ -197,10 +228,25 @@ export default class Syntax {
         && Token.isIdentifiersNumber(code[++i].code)
         && code[++i].code === thenToken) {
 
-        checkIfCounter++;
+        const conditionalExpression = this._setNodeTree(nodeConditionStatement, '<conditional-expression>');
+        this._setNodeTree(conditionalExpression, code[i-3]);
+        this._setNodeTree(conditionalExpression, code[i-2]);
+        this._setNodeTree(conditionalExpression, code[i-1]);
+        this._setNodeTree(nodeConditionStatement, code[i]);
+
+        checkIf.counter++;
+        checkIf.node.push(nodeCondition);
 
         // <statements-list>
-        i = this._statementsList(code, ++i, length);
+        [i, isElse] = this._statementsList(code, ++i, length, nodeConditionStatement);
+
+        // <alternative-part> --> ELSE <statements-list> | <empty>
+        if (isElse) {
+          const nodeAlternativePart = this._setNodeTree(checkIf.node[checkIf.node.length-1], '<alternative-part>');
+          this._setNodeTree(nodeAlternativePart, code[i]);
+          // <statements-list>
+          [i, isElse] = this._statementsList(code, ++i, length, nodeAlternativePart);
+        }
 
       } else {
         code[i].syntax = true;
@@ -208,13 +254,11 @@ export default class Syntax {
 
     }
 
-    // <alternative-part> --> ELSE <statements-list> | <empty>
     if (!endProgram && i < length - 2 && code[i].code === elseToken) {
-      // <statements-list>
-      i = this._statementsList(code, ++i, length);
+      isElse = true;
     }
 
-    return i;
+    return [i, isElse];
   }
 
   static _setNodeTree(parent, str) {

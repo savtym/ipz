@@ -69,3 +69,51 @@ pre {
     box-shadow: inset 40px 0 0 #fbfbfc, inset 41px 0 0 #ececf0;
   }
 }
+
+.tree {
+  xmp {
+    margin: 10px 20px 10px 0;
+    text-align: center;
+    padding: 20px;
+    border-radius: 50%;
+    display: inline-block;
+    vertical-align: middle;
+    white-space: pre-wrap;
+    line-height: normal;
+    width: 150px;
+    background-color: #B3E5FC;
+  }
+  .tab {
+    display: inline-block;
+    vertical-align: middle;
+    margin-right: 10px;
+    width: 40px;
+    border-bottom: 1px solid #BF360C;
+  }
+  .token {
+    margin-right: 20px;
+    padding: 20px;
+    border-radius: 50%;
+    vertical-align: middle;
+    background-color: #C5E1A5;
+  }
+  .space-description {
+    display: inline-block;
+    vertical-align: middle;
+    margin-right: 20px;
+    width: 80px;
+    padding: 20px;
+    text-align: center;
+    border-radius: 50%;
+    background-color: #FFAB91;
+  }
+  .counter {
+    margin-right: 10px;
+    display: inline-block;
+    vertical-align: middle;
+    padding: 10px 15px;
+    text-align: center;
+    border-radius: 50%;
+    background-color: #FFCCBC;
+  }
+}

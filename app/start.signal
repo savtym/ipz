@@ -4,14 +4,14 @@ BEGIN
 
 	4832904 :
 		IF ADE = 1212 THEN
-			GOTO: 53543;
+			GOTO 53543;
 		ELSE
-			GOTO: 4832904;
+			GOTO 4832904;
 		ENDIF;
 		
 
 	53543 :
-		GOTO: 4832904;
+		GOTO 4832904;
 	
 	(* some text,
 		more text *)
