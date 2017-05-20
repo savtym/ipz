@@ -15,7 +15,7 @@ export default class ViewController {
     this.table = document.getElementsByClassName('list')[0];
   }
 
-  createTable(title, textProgram, code, tree) {
+  createTable(title, textProgram, code, tree, asm) {
     let tableStr = `<h2>${ title }</h2>`;
     tableStr += `<pre class="prettyprint linenums">${ textProgram }</pre>`;
     tableStr += `<table class="table table-striped table-bordered table-hover table-condensed"><thead><tr><th>#</th><th>Code</th><th>Token</th><th>Row</th></tr></thead>`;
@@ -34,6 +34,14 @@ export default class ViewController {
 
     tableStr += this._createTree(tree, '<div class="tree">');
     tableStr += '</div>';
+
+    if (asm) {
+      let bufStr = '';
+      for (let item of asm) {
+        bufStr += `${ item }\n`;
+      }
+      tableStr += `<h3>Asm:</h3><pre class="prettyprint linenums">${ bufStr }</pre>`;
+    }
 
     const div = document.createElement('div');
     div.className = 'item';

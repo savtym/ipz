@@ -7,6 +7,7 @@ import Variables from './common/variables.js';
 
 import Lexer from './Model/lexer.js';
 import Syntax from './Model/syntax.js';
+import Generator from './Model/generator.js';
 
 
 let textFiles = [];
@@ -43,11 +44,19 @@ export default class ModelController {
   }
 
   start(textFile, title) {
-    const code = Lexer.parsing(textFile);
-    Syntax.analyze(code);
+
+    let asm, code, tree, errorLexer, errorSyntax;
+
+    [code, errorLexer] = Lexer.parsing(textFile);
+    [tree, errorSyntax] = Syntax.analyze(code);
+
+    if (!errorLexer && !errorSyntax) {
+      asm = Generator.generatorCode(code);
+    }
+
     textFiles.push(textFile);
     arrCodes.push(code);
-    Observer.emit(Variables.responseToRequest, title, textFile, code, Syntax.treeNodes);
+    Observer.emit(Variables.responseToRequest, title, textFile, code, tree, asm);
   }
 
 }

@@ -17,20 +17,14 @@ const endToken = Token.reservedKeyWords['END'];
 
 const minLengthTokens = 5;
 
-let declarationsLabel = [];
+let declarationsLabel;
 
-let treeNodes = {
-  node: '<signal-program>',
-  children: []
-};
+let treeNodes;
 
-let error = false;
-let endProgram = false;
+let error;
+let endProgram;
 
-let checkIf = {
-  counter: 0,
-  node: []
-};
+let checkIf;
 
 const errorNotFoundEND = 'Not found END.';
 
@@ -44,6 +38,22 @@ export default class Syntax {
   }
 
   static analyze(code) {
+
+    treeNodes = {
+      node: '<signal-program>',
+      children: []
+    };
+
+    checkIf = {
+      counter: 0,
+      node: []
+    };
+
+    declarationsLabel = [];
+    endProgram = false;
+    error = false;
+
+
     let length = code.length;
 
     // if code program beginToken the token 'PROGRAM', identifier and token ';' <program> --> PROGRAM <procedure-identifier> ;
@@ -70,16 +80,18 @@ export default class Syntax {
         [i,] = this._statementsList(code, i, length, nodeBlock);
 
         if (!endProgram) {
+          error = true;
           code.push(Lexer.createRow(-1, errorNotFoundEND, length, true));
         } else {
           this._setNodeTree(nodeBlock, code[i]);
         }
 
       } else {
+        error = true;
         code[i].syntax = true;
       }
     }
-    endProgram = false;
+    return [treeNodes, error];
   }
 
   // <declarations> --> <label-declarations>
@@ -119,6 +131,7 @@ export default class Syntax {
         // ; <empty>
         if (code[i].code !== Token.reservedCharacters[';']) {
           code[i].syntax = true;
+          error = true;
         } else {
             this._setNodeTree(nodeParent, code[i]);
         }
@@ -152,6 +165,7 @@ export default class Syntax {
         && declarationsLabel.includes(code[i].code)
         && i < length - 2
         && code[++i].code === Token.reservedCharacters[':']) {
+          code[i-1].label = true;
           const nodeStatement = this._setNodeTree(nodeStatementList, '<statement>');
           this._setNodeTree(nodeStatement, code[i-1]);
           this._setNodeTree(nodeStatement, code[i]);
@@ -170,6 +184,7 @@ export default class Syntax {
 
       // ;
       else if (code[i].code === Token.reservedCharacters[';']) {
+        code[i].nope = true;
         const nodeStatement = this._setNodeTree(nodeStatementList, '<statement>');
         this._setNodeTree(nodeStatement, code[i]);
       }
@@ -186,6 +201,7 @@ export default class Syntax {
           i++;
           break;
         } else {
+          error = true;
           code[i].syntax = true;
         }
       }
@@ -193,6 +209,7 @@ export default class Syntax {
       //END
       else if (code[i].code === endToken) {
         if (checkIf.counter > 0) {
+          error = true;
           code[i].syntax = true;
         }
         endProgram = true;
@@ -249,6 +266,7 @@ export default class Syntax {
         }
 
       } else {
+        error = true;
         code[i].syntax = true;
       }
 

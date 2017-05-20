@@ -4,6 +4,7 @@
 
 import Token from './token';
 
+let error;
 const errorMessage = 'error';
 const errorMessageToken = 'token is wrong';
 const errorMessageComment = `comment don't close`;
@@ -14,6 +15,7 @@ export default class Lexer {
   }
 
   static parsing(text) {
+    error = false;
     let buf = '';
     let lexer = [];
     let counterRow = 1;
@@ -27,6 +29,7 @@ export default class Lexer {
         while (`${text[i]}${text[i+1]}` !== '*)') {
           if (i === lenghtText - 1) {
             lexer.push(this.createRow(errorMessage, errorMessageComment, counterRow, true));
+            error = true;
             break;
           }
           if (text[i] === '\n') {
@@ -80,7 +83,7 @@ export default class Lexer {
       lastIndex = i;
     }
 
-    return lexer;
+    return [lexer, error];
   }
 
   static createRow(code, string, counterRow, error = false) {
@@ -103,6 +106,7 @@ export default class Lexer {
     }
     else {
       lexer.push(this.createRow(errorMessage, `${errorMessageToken}: ${token}`, counterRow, true));
+      error = true;
     }
   }
 

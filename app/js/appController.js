@@ -16,7 +16,7 @@ export class AppController {
   static start() {
     this.model = new ModelController();
     this.view = new ViewController();
-    Observer.addListener(Variables.responseToRequest, (title, textProgram, code, tree) => this.responseToRequest(title, textProgram, code, tree));
+    Observer.addListener(Variables.responseToRequest, (title, textProgram, code, tree, asm) => this.responseToRequest(title, textProgram, code, tree, asm));
     this.model.request(urlFile);
   }
 
@@ -27,8 +27,8 @@ export class AppController {
     this.model.start(textFile, title);
   }
 
-  static responseToRequest(title, textProgram, code, tree) {
-    this.view.createTable(title, textProgram, code, tree);
+  static responseToRequest(title, textProgram, code, tree, asm) {
+    this.view.createTable(title, textProgram, code, tree, asm);
   }
 
 
